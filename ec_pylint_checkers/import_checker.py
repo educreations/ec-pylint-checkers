@@ -91,6 +91,8 @@ _GROUP_APP_SPECIFIC = 2
 
 
 def _module_group(name):
+    if name in sys.builtin_module_names:
+        return _GROUP_STDLIB
     try:
         path = imp.find_module(name)[1]
     except ImportError:
