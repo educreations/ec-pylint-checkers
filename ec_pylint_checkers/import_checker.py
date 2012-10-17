@@ -85,6 +85,28 @@ MSGS['C7004'] = (
 _STDLIB_PREFIX = os.path.realpath(getattr(sys, 'real_prefix', sys.prefix)) + '/'
 _APP_PREFIX = os.path.realpath(os.getcwd()) + '/'
 
+_GROUP_STDLIB = 0
+_GROUP_THIRD_PARTY = 1
+_GROUP_APP_SPECIFIC = 2
+
+
+def _module_group(name):
+    try:
+        path = imp.find_module(name)[1]
+    except ImportError:
+        return _GROUP_THIRD_PARTY
+    real_path = os.path.realpath(path)
+    path_pieces = set(real_path.split('/'))
+    if real_path.startswith(_APP_PREFIX):
+        return _GROUP_APP_SPECIFIC
+    elif (real_path.startswith(_STDLIB_PREFIX) and
+          'site-packages' not in path_pieces and
+          'dist-packages' not in path_pieces):
+        return _GROUP_STDLIB
+    else:
+        return _GROUP_THIRD_PARTY
+
+
 class ImportChecker(BaseChecker):
     __implements__ = (IASTNGChecker,)
 
@@ -135,22 +157,7 @@ class ImportChecker(BaseChecker):
             import_str = import_node.as_string()
             actual.append(import_str)
 
-            try:
-                path = imp.find_module(pieces[0])[1]
-            except ImportError:
-                group = 1  # 3rd party
-            else:
-                real_path = os.path.realpath(path)
-                path_pieces = set(real_path.split('/'))
-                if real_path.startswith(_APP_PREFIX):
-                    group = 2  # app-specific
-                elif (real_path.startswith(_STDLIB_PREFIX) and
-                      'site-packages' not in path_pieces and
-                      'dist-packages' not in path_pieces):
-                    group = 0  # stdlib
-                else:
-                    group = 1  # 3rd party
-
+            group = _module_group(pieces[0])
             expected1.append((group, i, import_str))
             expected2.append((group, pieces, import_str))
 
