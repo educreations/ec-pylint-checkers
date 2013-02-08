@@ -47,6 +47,11 @@ C7005: Relative imports for intra-package imports are highly discouraged:
     fully implemented in Python 2.5, its style of explicit relative imports is
     actively discouraged; absolute imports are more portable and usually more
     readable.
+
+C7006: Imports are out of order:
+
+    [Variant of C7004 which expects each group's from imports to be after the
+    bare non-from imports.]
 """
 
 import difflib
@@ -80,6 +85,12 @@ MSGS['C7004'] = (
     MSGS['C7003'][0],
     MSGS['C7003'][1] + ' This is a stricter version of C7003 which also '
     'checks that imports are sorted alphabetically within each group.'
+)
+MSGS['C7006'] = (
+    MSGS['C7003'][0],
+    MSGS['C7003'][1] + ' This is a stricter version of C7003 which also '
+    'checks that imports are sorted alphabetically within each group, which '
+    'each group\'s from imports after its bare non-from imports.'
 )
 
 _STDLIB_PREFIX = os.path.realpath(getattr(sys, 'real_prefix', sys.prefix)) + '/'
@@ -141,30 +152,40 @@ class ImportChecker(BaseChecker):
         actual = []
         expected1 = []
         expected2 = []
+        expected3 = []
 
         # Determine sort keys for each top-level import.
         # expected1 (for C7003) contains:
         #   (group_idx, idx, import_str)
         # expected2 (for C7004) contains:
         #   (group_idx, module_name_pieces, import_str)
+        # expected3 (for C7006) contains:
+        #   (group_idx, subgroup, module_name_pieces, import_str)
         for i, import_node in enumerate(self._imports):
             if isinstance(import_node, astng.Import):
                 pieces = tuple(import_node.names[0][0].split('.'))
+                subgroup = 0
             else:
                 pieces = (
                     tuple(node.name.split('.')[:-import_node.level]) +
                     tuple(filter(None, import_node.modname.split('.'))) +
                     (import_node.names[0][0],)
                 )
+                subgroup = 1
             import_str = import_node.as_string()
             actual.append(import_str)
 
             group = _module_group(pieces[0])
             expected1.append((group, i, import_str))
             expected2.append((group, pieces, import_str))
+            expected2.append((group, subgroup, pieces, import_str))
 
-        # Complain about C7003 or C7004 (but not both) if appropriate.
-        for msg, expected in [('C7003', expected1), ('C7004', expected2)]:
+        # Complain about C7003, C7004, or C7006 (but only one) if appropriate.
+        for msg, expected in [
+                ('C7003', expected1),
+                ('C7004', expected2),
+                ('C7006', expected3),
+        ]:
             expected.sort()
             expected_strs = [data[-1] for data in expected]
             if actual != expected_strs:
