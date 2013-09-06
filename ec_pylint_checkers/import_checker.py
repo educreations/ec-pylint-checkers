@@ -170,7 +170,7 @@ class ImportChecker(BaseChecker):
                 subgroup = 0
             else:
                 pieces = (
-                    tuple(node.name.split('.')[:-import_node.level]) +
+                    tuple(node.name.split('.')[:-(import_node.level or 0)]) +
                     tuple(filter(None, import_node.modname.split('.'))) +
                     (import_node.names[0][0],)
                 )
