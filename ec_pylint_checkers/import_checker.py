@@ -194,6 +194,7 @@ class ImportChecker(BaseChecker):
             if actual != expected_strs:
                 self.add_message(
                     msg,
+                    node=node,
                     args=(
                         '\n'.join('  %s' % line for line in actual),
                         '\n'.join('  %s' % line for line in expected_strs),
