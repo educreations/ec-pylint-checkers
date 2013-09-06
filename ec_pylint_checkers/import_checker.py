@@ -60,7 +60,10 @@ import os
 import sys
 
 from logilab import astng
-from pylint.interfaces import IASTNGChecker
+try:
+    from pylint.interfaces import IAstroidChecker
+except ImportError:
+    from pylint.interfaces import IASTNGChecker as IAstroidChecker
 from pylint.checkers import BaseChecker
 
 MSGS = {
@@ -121,7 +124,7 @@ def _module_group(name):
 
 
 class ImportChecker(BaseChecker):
-    __implements__ = (IASTNGChecker,)
+    __implements__ = (IAstroidChecker,)
 
     name = 'ec_imports'
     msgs = MSGS
