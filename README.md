@@ -1,5 +1,7 @@
 Extra checkers for Pylint
 
+*This code is unmaintained and does not work with recent versions of pylint.*
+
 ### Setup
 
 Once installed, these can be added to pylintrc on the load-plugins line:
