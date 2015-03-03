@@ -1,6 +1,6 @@
 Extra checkers for Pylint
 
-*This code is unmaintained and does not work with recent versions of pylint.*
+**This code is unmaintained and does not work with recent versions of pylint.**
 
 ### Setup
 
